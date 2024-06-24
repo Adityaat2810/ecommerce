@@ -6,6 +6,6 @@ import { singleUpload } from "../middlewares/multer.js";
 const app = express.Router();
 
 //Todo admin only can use this route 
-app.post("/new",singleUpload,newProduct);
+app.post("/new",adminOnly,singleUpload,newProduct);
 
 export default app ;
