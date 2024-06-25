@@ -51,4 +51,32 @@ export interface invalidateCacheProps{
     order?:boolean;
     admin?:boolean;
 }
+export type OrderItem={
+    name:String;
+    photo:string;
+    price:number;
+    quantity:number;
+    productId:string;
 
+}
+
+export type ShippingInfoType= {
+    address:string;
+    city:string;
+    state:string;
+    country:string;
+    pincode:string;
+    
+}
+
+export interface NewOrderRequestBody{
+    shippingInfo:ShippingInfoType;
+    user:string;
+    subTotal:number;
+    tax:number;
+    shippingCharges:number;
+    discount:number;
+    total:number;
+    orderItems:OrderItem[];
+
+}
