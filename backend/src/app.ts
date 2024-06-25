@@ -1,4 +1,5 @@
 import express, { NextFunction, Request, Response } from "express"
+import NodeCache from "node-cache";
 
 // user routes
 import userRoutes from './routes/user.js'
@@ -10,6 +11,8 @@ const port =4000;
 const app = express();
 app.use(express.json())
 connectDB();
+
+export const myCache = new NodeCache();
 
 app.use("/api/v1/user",userRoutes)
 app.use("/api/v1/product",productRoutes)

@@ -46,3 +46,9 @@ export interface BaseQuery{
 
 }
 
+export interface invalidateCacheProps{
+    product?:boolean;
+    order?:boolean;
+    admin?:boolean;
+}
+
