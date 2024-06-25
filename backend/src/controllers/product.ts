@@ -38,3 +38,113 @@ export const newProduct = TryCatch(
 
     }
 )
+
+export const getLatestProduct=TryCatch(
+    async (req,res,next)=>{
+        // +1 => ascending    -1=>descending
+        const products=await Product.find().sort({createdAt:-1}).limit(5);
+        res.status(200).json({
+            success:true,
+            products
+        })
+    }
+)
+
+export const getAllCategories = TryCatch(
+    async(req,res,next)=>{
+        const categories = await Product.find().distinct("category");
+        res.status(200).json({
+            success:true,
+            categories
+        })
+            
+
+    }
+)
+
+
+export const getAdminProducts = TryCatch(
+    async(req,res,next)=>{
+        const products = await Product.find({});
+        return res.status(200).json({
+            success:true,
+            products
+        })
+
+    }
+)
+
+export const getSingleProduct = TryCatch(
+    async(req,res,next)=>{
+        const product = await Product.findById(req.params.id);
+        return res.status(200).json({
+            success:true,
+            product
+        })
+
+    }
+)
+
+
+export const updateProduct = TryCatch(
+    async(req,res,next)=>{
+        const {id} = req.params
+
+        const {name , category ,price , stock} = req.body;
+        const photo = req.file ;
+
+        const product = await Product.findById(id);
+
+        if(!product){
+            return next(new ErrorHandler("Invalid product Id",404))
+        }
+
+        if(photo){
+            rm(product.photo!,()=>{
+                console.log("Old photo deletd")
+            })
+            
+            product.photo = photo.path
+        }
+
+        if(name) product.name = name;
+        if(stock) product.stock = stock;
+        if(price) product.price = price;
+        if(category) product.category = category;
+
+        await product.save();
+
+        res.status(200).json({
+            success:true,
+            message:`product updated successfully`
+        })
+
+
+    }
+)
+
+
+export const deleteProduct = TryCatch(
+    async(req,res,next)=>{
+        const id = req.params;
+        if(!id) return next(new ErrorHandler("Do not get id",400))
+        
+        const product = await Product.findById(req.params.id);
+        if(!product) return next(new ErrorHandler("Invalid id",404))
+        
+        //deleteing the product 
+        rm(product.photo!,()=>{
+            console.log("Old photo deletd")
+        })
+        await Product.deleteOne();
+
+        return res.status(200).json({
+            success:true,
+            message:"Product deleted successfully"
+        })
+
+    }
+)
+
+
+
