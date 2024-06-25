@@ -1,6 +1,6 @@
 import { Request } from "express";
 import { TryCatch } from "../middlewares/error.js";
-import { NewProductRequestBody } from "../types/types.js";
+import { BaseQuery, NewProductRequestBody, SearchRequestQuery } from "../types/types.js";
 import { Product } from "../models/product.js";
 import ErrorHandler from "../utils/utility-class.js";
 import { rm } from "fs";
@@ -101,7 +101,7 @@ export const updateProduct = TryCatch(
 
         if(photo){
             rm(product.photo!,()=>{
-                console.log("Old photo deletd")
+                console.log("Old photo deleted")
             })
             
             product.photo = photo.path
@@ -143,6 +143,48 @@ export const deleteProduct = TryCatch(
             message:"Product deleted successfully"
         })
 
+    }
+)
+
+// To get all products with filter 
+export const getAllProducts= TryCatch(
+    async(req:Request<{},{},{},SearchRequestQuery>,res,next)=>{
+        const {search,sort,category,price} = req.query
+
+        const page =Number(req.query.page) || 1;
+        const limit = Number(process.env.PRODUCT_PER_PAGE) || 8;
+
+        const skip = limit * (page-1);
+        let baseQuery:BaseQuery ={}
+
+        if(search) baseQuery.name ={
+            $regex:search,
+            $options:"i"
+        }
+
+        if(price) baseQuery.price= {
+            $lte:Number(price) // less than eqaual to given price
+        }
+
+        if(category) baseQuery.category = category
+
+        const [products, filteredOnlyProducts] = await Promise.all([
+            Product.find(baseQuery)
+            .sort( sort && { price:sort=== "asc" ? 1 :-1})
+            .limit(limit)
+            .skip(skip)  ,
+
+            Product.find(baseQuery)
+
+        ])
+
+        const totalPage =Math.ceil(filteredOnlyProducts.length/ limit) ;
+        
+        return res.status(200).json({
+            success:true,
+            products,
+            totalPage
+        })
     }
 )
 

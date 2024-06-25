@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+import { StringSchemaDefinition } from "mongoose";
 
 export interface NewUserRequestBody {
     name: string;
@@ -24,6 +25,24 @@ export type ControllerType = (
     next: NextFunction
 ) => Promise<void | Response<any, Record<string, any>>>;
 
+export type SearchRequestQuery={
+    search?:string;
+    price?:string;
+    category?:string;
+    sort?:string;
+    page?:StringSchemaDefinition
+}
 
+export interface BaseQuery{
+    name?:{
+        $regex:string,
+        $options:string
+    };
+    price?:{
+        $lte:number
+    };
 
+    category?:string;
+
+}
 
