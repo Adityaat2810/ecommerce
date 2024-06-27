@@ -15,8 +15,4 @@ app.get("/all",adminOnly,getAllUsers);
 app.get("/:id",getUser);
 app.delete("/:id",deleteUser);
 
-
-
-
-
 export default app;
