@@ -236,7 +236,128 @@ export const getdashboardStats=TryCatch(
 
 export const getPieChart=TryCatch(
     async(req,res,next)=>{
+        // order full-fillment 
+        let charts;
+
+        if(myCache.has("admin-pie-charts")){
+            charts=JSON.parse(myCache.get("admin-pie-charts") as string)
+        }
+        else{
+            const [
+                proOrder,
+                shidOrder,
+                delOrder,
+                categories,
+                productCount,
+                productsOutStock,
+                allOrders,
+                allusers,
+                adminCount ,
+                customerCount
+            ] = await Promise.all([
+                Order.countDocuments({status:"Processing"}),
+                Order.countDocuments({status:"Shipped"}),
+                Order.countDocuments({status:"Delivered"}),
+                Product.distinct("category"),
+                Product.countDocuments(),
+                Product.countDocuments({stock:0}),
+                Order.find({}).select(
+                    ["total","discount","subTotal","tax",
+                    "shippingCharges"]),
+                
+                User.find({}).select(["dob"]),
+                User.countDocuments({role:"admin"}),
+                User.countDocuments({role:"user"}),
+
+
+            ]);
+
+            const orderFullfillment = {
+                processing:proOrder,
+                shipped:shidOrder,
+                delivered:delOrder
+            }
+
+            //product category ratio
+
+            // percent distribution for each category
+            const categoriesCountPromise =categories.map(category=>
+                Product.countDocuments({category})
+            ) 
+
+            const categoriesCount = await 
+                Promise.all(categoriesCountPromise);
+            //now array categories count has count for each category
+            
+            const categoryCount: { category: string; count: number; }[]=[]   
+            categories.forEach((category,index)=>{
+                categoryCount.push({
+                    category,
+                    count:Math.round((categoriesCount[index]/productCount)*100)
+                })
+            })
+
+            const stockAvailablity={
+                inStock:productCount-productsOutStock,
+                outOfStock:productsOutStock
+            }
+
+            const grossIncome =allOrders.reduce(
+                (prev,order)=> prev+(order.total || 0),0
+            )
+
+            const discount =allOrders.reduce(
+                (prev,order)=> prev+(order.discount || 0),0
+            )
+
+            const productionCost =allOrders.reduce(
+                (prev,order)=> prev+(order.shippingCharges || 0),0
+            )
+
+            const burnt =allOrders.reduce(
+                (prev,order)=> prev+(order.tax || 0),0
+            )
+
+            const marketingCoast =Math.round(grossIncome* (30/100));
+            
+            const netMargin= grossIncome - discount -productCount -burnt -marketingCoast ;
+
+
+
+            const revenueDistribution= {
+                netMargin ,
+                discount,
+                productionCost, 
+                burnt,
+                marketingCoast
+            };
+
+            const adminCustomer ={
+                admin:adminCount,
+                customer:customerCount
+            };
+
+            const userAgeGroup ={
+                teen:allusers.filter(i=>i.age<=20).length,
+                adult:allusers.filter(i=>i.age<=40 && i.age>20).length,
+                old:allusers.filter(i=>i.age>40).length
+            }
+
+            charts={
+                orderFullfillment,
+                productCategories:categoryCount,   // in percentage
+                stockAvailablity,
+                revenueDistribution,
+                adminCustomer,
+                userAgeGroup
+            }
+            myCache.set("admin-pie-charts",JSON.stringify(charts))
+        }
         
+        return res.status(200).json({
+            success:true,
+            charts
+        })
     }
 )
 
