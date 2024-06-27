@@ -13,6 +13,9 @@ export const getdashboardStats=TryCatch(
         else{
             //Revenue , user , trsansactions , product
             const today = new Date();
+            const sixMonthsAgo =new Date();
+            sixMonthsAgo.setMonth(sixMonthsAgo.getMonth()-6)
+
             const startOfThisMonth= new Date(
                 today.getFullYear(),
                 today.getMonth(),
@@ -72,6 +75,20 @@ export const getdashboardStats=TryCatch(
                 }
             })
 
+            const lastSixMonthOrderPromise= Order.find({
+                createdAt:{
+                    $gte:sixMonthsAgo,
+                    $lte:today
+                }
+            });
+
+            const latestTransactionsPromise= Order.find({}).select([
+                "orderItems",
+                "discount",
+                "total",
+                "status"
+            ]).limit(4)
+
             const [
                 thisMonthProducts,
                 thisMonthUsers,
@@ -83,6 +100,12 @@ export const getdashboardStats=TryCatch(
                 userCount,
                 allOrders,
 
+                lastSixMonthOrder,
+                categories,
+
+                femaleUsersCount,
+
+                latestTrasaction
 
              ] = await Promise.all([
                 thisMonthProductsPromis,
@@ -93,7 +116,14 @@ export const getdashboardStats=TryCatch(
                 lastMonthOrderPromis,
                 Product.countDocuments(),
                 User.countDocuments(),
-                Order.find({}).select("total")
+                Order.find({}).select("total"),
+                lastSixMonthOrderPromise,
+                Product.distinct("category"),
+                User.countDocuments({gender:"female"}),
+
+                latestTransactionsPromise
+
+
             ])
 
             const thisMonthRevenue = thisMonthOrders.reduce(
@@ -131,12 +161,69 @@ export const getdashboardStats=TryCatch(
                 user:userCount,
                 product:productCount,
                 order:allOrders.length
+            };
+
+            const orderMonthCounts = new Array(6).fill(0);
+            const orderMonthlyRevenue = new Array(6).fill(0);
+
+
+            lastSixMonthOrder.forEach((order)=>{
+                const creationDate= order.createdAt
+                const monthDiff = today.getMonth()-creationDate.getMonth();
+
+                if(monthDiff<6){
+                    orderMonthCounts[6-monthDiff-1]++;
+                    orderMonthlyRevenue[6-monthDiff-1] += order.total;
+                }
+            });
+
+            // percent distrribution for each category
+            const categoriesCountPromise =categories.map(category=>
+                Product.countDocuments({category})
+            ) 
+
+            const categoriesCount = await 
+                Promise.all(categoriesCountPromise);
+            //now array categories count has count for each category
+            
+            const categoryCount: { category: string; count: number; }[]=[]   
+            categories.forEach((category,index)=>{
+                categoryCount.push({
+                    category,
+                    count:Math.round((categoriesCount[index]/productCount)*100)
+                })
+            })
+
+            const UsersRatio={
+                male:userCount-femaleUsersCount,
+                female:femaleUsersCount
             }
+
+            const modifiedlatestTrasaction=latestTrasaction.
+                 map((transaction)=>({
+                    _id:transaction._id,
+                    discount:transaction.discount,
+                    amount:transaction.total,
+                    quantity:transaction.orderItems.length,
+                    status:transaction.status
+
+                })
+            )
             
             stats={
                 changePercent,
-                count
+                count,
+                chart:{
+                    orderMonthCounts,
+                    orderMonthlyRevenue
+                },
+                categoryCount,
+                UsersRatio,
+                latestTrasaction:modifiedlatestTrasaction
             }
+
+            //cache this data 
+           myCache.set("admin-stats",JSON.stringify(stats)) 
 
         }
 
