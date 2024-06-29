@@ -3,6 +3,10 @@
     line-height: 1.5;
     font-weight: 400;
   }
+
+  body{
+    user-select: none;
+  }
   
   * {
     margin: 0;
@@ -24,6 +28,7 @@
   .green {
     color: rgb(0, 195, 0);
   }
+
   
   @import "admin-styles/mixin";
   
@@ -32,6 +37,11 @@
   @import "admin-styles/chart";
   @import "admin-styles/dashboardapp";
   @import "admin-styles/mediaquery";
+  @import "header";
+  @import "home.scss";
+
+
+
   
   .admin-container {
     @include grid(1fr 4fr, 2rem);
@@ -207,4 +217,6 @@
       transform: translate(-50%, -20%);
     }
   }
+
+  
   
