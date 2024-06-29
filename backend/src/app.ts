@@ -11,10 +11,15 @@ import userRoutes from './routes/user.js'
 import productRoutes from './routes/product.js'
 import paymentRoutes from './routes/payment.js'
 import statsRoutes from './routes/stats.js'
+import Stripe from "stripe";
 
 config({
     path: './.env'
 })
+
+const STRIPE_KEY = process.env.STRIPE_KEY || ''
+
+export const stripe = new Stripe(STRIPE_KEY);
 const port =process.env.PORT || 4000;
 const app = express();
 

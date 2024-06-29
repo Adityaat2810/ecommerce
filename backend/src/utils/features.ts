@@ -47,7 +47,15 @@ export const invalidateCache =async({
         ]
 
         myCache.del(orderKeys);
-        
+    
+    }
+
+    if(admin){
+        const adminKeys = ['admin-stats','admin-pie-charts',
+            'admin-bar-charts','admin-line-charts'
+        ]
+
+        myCache.del(adminKeys)
     }
 
 
