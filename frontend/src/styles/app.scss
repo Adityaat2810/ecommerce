@@ -40,10 +40,18 @@
   @import "header";
   @import "home.scss";
   @import "cart.scss";
+  @import "login.scss";
+
   @import "shipping";
 
 
 
+  .heading{
+    @include heading;
+    margin:1rem 0 ;
+    text-align: center;
+    
+  }
 
   
   .admin-container {
