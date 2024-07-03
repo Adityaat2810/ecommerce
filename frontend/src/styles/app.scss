@@ -41,6 +41,7 @@
   @import "home.scss";
   @import "cart.scss";
   @import "login.scss";
+  @import "search.scss";
 
   @import "shipping";
 
@@ -50,7 +51,7 @@
     @include heading;
     margin:1rem 0 ;
     text-align: center;
-    
+
   }
 
   
