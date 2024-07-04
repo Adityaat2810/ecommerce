@@ -3,7 +3,7 @@ import { FaSearch, FaShoppingBag, FaSign, FaSignInAlt, FaSignOutAlt, FaUser } fr
 import { Link } from "react-router-dom";
 
 // creating temporary user 
-const user = { _id: "ks", role: "admin" }
+const user = { _id: "ks", role: "" }
 
 export default function Header() {
 

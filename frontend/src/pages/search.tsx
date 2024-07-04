@@ -10,8 +10,8 @@ const Search = () => {
   const [page,setPage]=useState(1);
 
   const addToCartHandler=()=>{}
-  const isNextPage = true
-  const isPreviousPage = true
+  const isNextPage = page<4;
+  const isPreviousPage = page>1;
   return (
     <div className="product-search-page">
       <aside>
